@@ -1,0 +1,13 @@
+{
+  "name": "less-framework/less-session",
+  "require": {
+    "composer/installers": "~1.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Less\\Session\\": ["src/Less/Session/"]
+    }
+  },
+  "license": "proprietary",
+  "description": "less session implements the basic session methods proxied, similiar to the zend session module"
+}
