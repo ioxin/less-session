@@ -1,8 +1,12 @@
 <?php
-namespace Less\Session\Container;
+namespace Less\Session\Containers;
 
 use Interop\Container\ContainerInterface;
 
+/**
+ * Class SessionFactory
+ * @package Less\Session\Containers
+ */
 class SessionFactory
 {
     /**

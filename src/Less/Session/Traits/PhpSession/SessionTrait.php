@@ -7,7 +7,6 @@ namespace Less\Session\Traits\PhpSession;
  */
 trait SessionTrait
 {
-
     /**
      * @hint method is used to start a new session or continue an existing session
      */

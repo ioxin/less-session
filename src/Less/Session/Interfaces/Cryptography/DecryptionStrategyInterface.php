@@ -5,12 +5,15 @@ namespace Less\Session\Interfaces\Cryptography;
  * Interface DecryptionStrategy
  * @package Less\Session\Interfaces\Cryptography
  */
-interface DecryptionStrategy
+interface DecryptionStrategyInterface
 {
+
+
     /**
      * @param $data
      * @param null $password
-     * @return string
+     * @param null $iv
+     * @return mixed
      */
-    public function decrypt($data, $password = null);
+    public function decrypt($data, $password = null, $iv = null);
 }

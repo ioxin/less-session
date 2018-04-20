@@ -2,6 +2,8 @@
 namespace Less\Session;
 
 use Zend\ModuleManager\Feature\ConfigProviderInterface;
+use Zend\ModuleManager\Feature\InitProviderInterface;
+use Zend\ModuleManager\ModuleManagerInterface;
 
 /**
  * Class Module
@@ -18,5 +20,4 @@ class Module implements ConfigProviderInterface
     {
         return include __DIR__ . '/../../../config/module.config.php';
     }
-
 }

@@ -1,9 +1,9 @@
 <?php
 namespace Less\Session\Services;
 
-use Less\Session\Interfaces\Cryptography\DecryptionStrategy;
-use Less\Session\Interfaces\Cryptography\EncryptionStrategy;
-use Less\Session\Traits\PhpSession\SessionTrait;
+use Less\Session\Containers\Session;
+use Less\Session\Interfaces\Cryptography\DecryptionStrategyInterface;
+use Less\Session\Interfaces\Cryptography\EncryptionStrategyInterface;
 
 /**
  * Class SessionService
@@ -11,8 +11,6 @@ use Less\Session\Traits\PhpSession\SessionTrait;
  */
 class SessionService
 {
-    use SessionTrait;
-
     /**
      * @hint namespace of application within the global php session
      *
@@ -23,12 +21,12 @@ class SessionService
     /**
      * @hint global session used from session service as pointer before writing it back to session
      *
-     * @var array
+     * @var Session
      */
-    protected $session = [];
+    protected $session;
 
     /**
-     * @return array
+     * @return Session
      */
     public function getSession()
     {
@@ -36,7 +34,7 @@ class SessionService
     }
 
     /**
-     * @param array $session
+     * @param $session
      */
     public function setSession($session)
     {
@@ -51,14 +49,13 @@ class SessionService
         return $this->applicationSessionKey;
     }
 
-
     /**
-     * @var DecryptionStrategy
+     * @var DecryptionStrategyInterface
      */
     protected $decryptionStrategy = null;
 
     /**
-     * @return DecryptionStrategy
+     * @return DecryptionStrategyInterface
      */
     public function getDecryptionStrategy()
     {
@@ -66,7 +63,7 @@ class SessionService
     }
 
     /**
-     * @param DecryptionStrategy $decryptionStrategy
+     * @param DecryptionStrategyInterface $decryptionStrategy
      */
     public function setDecryptionStrategy($decryptionStrategy)
     {
@@ -74,12 +71,12 @@ class SessionService
     }
 
     /**
-     * @var EncryptionStrategy
+     * @var EncryptionStrategyInterface
      */
     protected $encryptionStrategy = null;
 
     /**
-     * @return EncryptionStrategy
+     * @return EncryptionStrategyInterface
      */
     public function getEncryptionStrategy()
     {
@@ -87,36 +84,121 @@ class SessionService
     }
 
     /**
-     * @param EncryptionStrategy $encryptionStrategy
+     * @param EncryptionStrategyInterface $encryptionStrategy
      */
     public function setEncryptionStrategy($encryptionStrategy)
     {
         $this->encryptionStrategy = $encryptionStrategy;
     }
 
-    public function initializeSession($params = [])
+    /**
+     * SessionService constructor.
+     * @param Session $session
+     * @param EncryptionStrategyInterface $encryptionStrategy
+     * @param DecryptionStrategyInterface $decryptionStrategy
+     */
+    public function __construct(Session $session, EncryptionStrategyInterface $encryptionStrategy, DecryptionStrategyInterface $decryptionStrategy)
     {
-        $this->startSession();
+        $this->setSession($session);
+        $this->setEncryptionStrategy($encryptionStrategy);
+        $this->setDecryptionStrategy($decryptionStrategy);
 
-        // check if global session var is persistent and the application session is included
-        if ($_SESSION && isset($_SESSION[$this->getApplicationSessionKey()])) {
-            //if application session key is set, the json encoded and cryptographically encoded content is read
-            //into the $encryptedSessionContent var
-            $encryptedSessionContent = $_SESSION[$this->getApplicationSessionKey()];
+        $this->initSession();
+    }
 
-            //the $encryptedSessionContent is encoded to the json_decoded array
-            $sessionContent = $this->getEncryptionStrategy()->encode($encryptedSessionContent);
+    /**
+     * @hint Proxy Method for easy usage
+     *
+     * @return bool
+     */
+    public function initSession()
+    {
+        return $this->initApplicationSession();
+    }
 
-            // the json_decoded array $sessionContent is now encoded into a php array
-            $sessionContentArray = json_decode($sessionContent, true);
+    /**
+     * @hint Proxy Method for developers semantic understanding, which session will be started
+     *
+     * @return bool
+     */
+    public function initApplicationSession()
+    {
+        return $this->initializeSessionNamespace($this->getApplicationSessionKey(), $this->getEncryptionStrategy(), $this->getDecryptionStrategy());
+    }
 
-            //only the decrypted application session is used to delegate the application
-            // vars outside the application session namespace are ignored because of non inclution
-            $this->setSession($sessionContentArray);
-
-        } else {
-            $tempArray = array_merge($params, $this->session);
-            $_SESSION[$this->getApplicationSessionKey()] = $tempArray;
+    /**
+     * @hint General Session starter for a namespace
+     *
+     * @param string $namespace
+     * @param EncryptionStrategyInterface $encryptionStrategy
+     * @param DecryptionStrategyInterface $decryptionStrategy
+     * @return bool
+     */
+    public function initializeSessionNamespace($namespace, EncryptionStrategyInterface $encryptionStrategy, DecryptionStrategyInterface $decryptionStrategy)
+    {
+        if (is_null($namespace)) {
+            return false;
         }
+        $session = $this->getSession();
+        if ($session instanceof Session) {
+            return $session->initializeSession($namespace, $encryptionStrategy, $decryptionStrategy);
+        }
+        return false;
+    }
+
+    /**
+     * @hint Proxy Method for easy usage
+     *
+     * @return bool
+     */
+    public function refreshSession()
+    {
+        return $this->refreshApplicationSession();
+    }
+
+    /**
+     * @hint Proxy Method for developers semantic understanding, which session will be refreshed
+     *
+     * @return bool
+     */
+    public function refreshApplicationSession()
+    {
+        return $this->refreshSessionNamespace($this->getApplicationSessionKey(), $this->getEncryptionStrategy(), $this->getDecryptionStrategy());
+    }
+
+    /**
+     * @hint General Session Refresher for a namespace
+     *
+     * @param string $namespace
+     * @param EncryptionStrategyInterface $encryptionStrategy
+     * @param DecryptionStrategyInterface $decryptionStrategy
+     * @return bool
+     * @throws \Exception
+     */
+    public function refreshSessionNamespace($namespace, EncryptionStrategyInterface $encryptionStrategy, DecryptionStrategyInterface $decryptionStrategy)
+    {
+        if (is_null($namespace)) {
+            return false;
+        }
+        $session = $this->getSession();
+        if ($session instanceof Session) {
+            return $session->refreshSession($namespace, $encryptionStrategy, $decryptionStrategy);
+        }
+        return false;
+    }
+
+    /**
+     * @param $string
+     * @return bool
+     */
+    public function removeNamespace($string)
+    {
+        if (is_null($string) || $string == '' || !$string) {
+            return false;
+        }
+
+        $this->getSession()->removeNamespace($string);
+
+        return true;
     }
 }

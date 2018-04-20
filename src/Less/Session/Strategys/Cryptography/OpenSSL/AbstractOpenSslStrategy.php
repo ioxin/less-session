@@ -10,7 +10,7 @@ class AbstractOpenSslStrategy
     /**
      * @var string
      */
-    protected $password = '9%ff$3AklMnOpV3T!';
+    protected $password = '9ff3AklMnOpV3T';
 
     /**
      * @return string
@@ -50,15 +50,31 @@ class AbstractOpenSslStrategy
         $this->method = $method;
     }
 
+    /**
+     * @return int
+     */
+    public function getStaticIv()
+    {
+        return 9285392853147264;
+    }
+
+    /**
+     * @param int $length
+     * @return int
+     */
+    private function getRandomBytesByLength($length = 16)
+    {
+        return random_bytes($length);
+
+    }
+
 
     /**
      * @return string
      */
     public function getIv()
     {
-        $method = $this->getMethod();
-        $ivSize = openssl_cipher_iv_length($method);
-        return $iv = openssl_random_pseudo_bytes($ivSize);
+        return $this->getRandomBytesByLength(openssl_cipher_iv_length($this->getMethod()));
     }
 
     /**

@@ -5,12 +5,18 @@ namespace Less\Session\Interfaces\Cryptography;
  * Interface EncryptionStrategy
  * @package Less\Session\Interfaces\Cryptography
  */
-interface EncryptionStrategy
+interface EncryptionStrategyInterface
 {
     /**
      * @param $data
      * @param null $password
+     * @param null $iv
      * @return string
      */
-    public function encode($data, $password = null);
+    public function encrypt($data, $password = null, $iv = null);
+
+    /**
+     * @return string
+     */
+    public function getIv();
 }

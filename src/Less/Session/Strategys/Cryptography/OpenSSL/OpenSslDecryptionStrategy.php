@@ -1,29 +1,30 @@
 <?php
 namespace Less\Session\Strategys\Cryptography\OpenSSL;
 
-use Less\Session\Interfaces\Cryptography\DecryptionStrategy;
+use Less\Session\Interfaces\Cryptography\DecryptionStrategyInterface;
 
 /**
  * Class OpenSslDecryptionStrategy
  * @package Less\Session\Strategys\Cryptography\OpenSSL
  */
-class OpenSslDecryptionStrategy extends AbstractOpenSslStrategy implements DecryptionStrategy
+class OpenSslDecryptionStrategy extends AbstractOpenSslStrategy implements DecryptionStrategyInterface
 {
     /**
      * @param $data
      * @param null $password
-     * @return string
+     * @param null $iv
+     * @return mixed
      */
-    public function decrypt($data, $password = null)
+    public function decrypt($data, $password = null, $iv = null)
     {
-        $this->optionalInitPassword($password);
+//        $iv = $iv ? $iv : $this->getIv();
         
         return openssl_decrypt(
-            base64_decode($data),
+            $data,
             $this->getMethod(),
-            $this->getKey(),
+            $this->getPassword(),
             OPENSSL_RAW_DATA | OPENSSL_ZERO_PADDING,
-            $this->getIv()
+            $iv
         );
     }
 }

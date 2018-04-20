@@ -2,8 +2,10 @@
 namespace Less\Session\Services;
 
 use Interop\Container\ContainerInterface;
+use Less\Session\Containers\Session;
 use Less\Session\Strategys\Cryptography\OpenSSL\OpenSslDecryptionStrategy;
 use Less\Session\Strategys\Cryptography\OpenSSL\OpenSslEncryptionStrategy;
+use Zend\Session\Container;
 
 /**
  * Class SessionServiceFactory
@@ -19,11 +21,12 @@ class SessionServiceFactory
      */
     public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
     {
-        $service = new SessionService();
-
-        //TODO: replace with injecten by config that gets its strategy by service manager
-        $service->setDecryptionStrategy(new OpenSslDecryptionStrategy());
-        $service->setEncryptionStrategy(new OpenSslEncryptionStrategy());
+        $session = $container->get(Session::class);
+        $service = new SessionService(
+            $session,
+            new OpenSslEncryptionStrategy(),
+            new OpenSslDecryptionStrategy()
+        );
 
         return $service;
     }
